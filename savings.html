@@ -162,6 +162,56 @@
         <div class="footer-bottom">
             <p>&copy; 2025 Chase x Records. All rights reserved.</p>
         </div>
+    
+            <!-- Payment Modal -->
+    <div id="paymentModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Complete Payment</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="payment-details">
+                    <p><strong>Project:</strong> <span id="paymentProjectName"></span></p>
+                    <p><strong>Amount:</strong> UGX <span id="paymentAmount"></span></p>
+                    <p><strong>Service:</strong> <span id="paymentService"></span></p>
+                </div>
+                
+                <div class="payment-methods">
+                    <h4>Select Payment Method</h4>
+                    <div class="payment-options">
+                        <div class="payment-option" data-method="mtn">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>MTN Mobile Money</span>
+                        </div>
+                        <div class="payment-option" data-method="airtel">
+                            <i class="fas fa-wallet"></i>
+                            <span>Airtel Money</span>
+                        </div>
+                        <div class="payment-option" data-method="bank">
+                            <i class="fas fa-university"></i>
+                            <span>Bank Transfer</span>
+                        </div>
+                        <div class="payment-option" data-method="card">
+                            <i class="fab fa-cc-visa"></i>
+                            <span>Credit/Debit Card</span>
+                        </div>
+                    </div>
+                    
+                    <div id="paymentInstructions" class="payment-instructions" style="display: none;">
+                        <h5>Payment Instructions</h5>
+                        <p id="instructionsText"></p>
+                        <div class="form-group">
+                            <label for="transactionId">Transaction ID/Reference:</label>
+                            <input type="text" id="transactionId" placeholder="Enter transaction reference">
+                        </div>
+                        <button id="confirmPayment" class="btn btn-primary">Confirm Payment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     </footer>
 
     <script src="scripts/savings.js"></script>

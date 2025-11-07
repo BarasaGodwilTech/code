@@ -1,7 +1,8 @@
-// Savings and Targets Management
+// Savings and Targets Management with Payment Integration
 class SavingsManager {
     constructor() {
         this.savingsGoals = JSON.parse(localStorage.getItem('savingsGoals')) || []
+        this.currentGoalData = null
         this.init()
     }
 
@@ -9,6 +10,7 @@ class SavingsManager {
         this.setupEventListeners()
         this.renderGoals()
         this.updateDashboard()
+        this.setupPaymentModal()
     }
 
     setupEventListeners() {
@@ -18,28 +20,173 @@ class SavingsManager {
         }
     }
 
+    setupPaymentModal() {
+        // Payment method selection
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.payment-option').forEach(opt => 
+                    opt.classList.remove('selected')
+                )
+                option.classList.add('selected')
+                
+                const method = option.getAttribute('data-method')
+                this.showPaymentInstructions(method)
+            })
+        })
+
+        // Confirm payment
+        document.getElementById('confirmPayment')?.addEventListener('click', () => {
+            this.processPayment()
+        })
+
+        // Close modal
+        document.querySelector('.modal-close')?.addEventListener('click', () => {
+            this.hidePaymentModal()
+        })
+
+        // Close modal when clicking outside
+        document.getElementById('paymentModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'paymentModal') {
+                this.hidePaymentModal()
+            }
+        })
+    }
+
     createGoal(e) {
         e.preventDefault()
         
         const formData = new FormData(e.target)
+        const currentAmount = parseInt(formData.get('currentAmount'))
+        
+        if (currentAmount > 0) {
+            // Store goal data and show payment modal
+            this.currentGoalData = {
+                projectName: formData.get('projectName'),
+                targetAmount: parseInt(formData.get('targetAmount')),
+                currentAmount: currentAmount,
+                targetDate: formData.get('targetDate'),
+                serviceType: formData.get('serviceType'),
+                createdAt: new Date().toISOString(),
+                completed: false,
+                isAdditional: false
+            }
+            
+            this.showPaymentModal()
+        } else {
+            // Create goal without payment
+            this.saveGoal({
+                projectName: formData.get('projectName'),
+                targetAmount: parseInt(formData.get('targetAmount')),
+                currentAmount: 0,
+                targetDate: formData.get('targetDate'),
+                serviceType: formData.get('serviceType'),
+                createdAt: new Date().toISOString(),
+                completed: false
+            })
+            
+            e.target.reset()
+            this.showMessage('Savings goal created successfully!', 'success')
+        }
+    }
+
+    showPaymentModal() {
+        if (!this.currentGoalData) return
+
+        const modal = document.getElementById('paymentModal')
+        document.getElementById('paymentProjectName').textContent = this.currentGoalData.projectName
+        document.getElementById('paymentAmount').textContent = this.formatNumber(this.currentGoalData.currentAmount)
+        document.getElementById('paymentService').textContent = this.getServiceName(this.currentGoalData.serviceType)
+        
+        modal.style.display = 'flex'
+        
+        // Reset payment form
+        document.querySelectorAll('.payment-option').forEach(opt => 
+            opt.classList.remove('selected')
+        )
+        document.getElementById('paymentInstructions').style.display = 'none'
+        document.getElementById('transactionId').value = ''
+    }
+
+    hidePaymentModal() {
+        document.getElementById('paymentModal').style.display = 'none'
+        this.currentGoalData = null
+    }
+
+    showPaymentInstructions(method) {
+        const instructions = document.getElementById('paymentInstructions')
+        const instructionsText = document.getElementById('instructionsText')
+        
+        const methodInstructions = {
+            mtn: `Send UGX ${this.formatNumber(this.currentGoalData.currentAmount)} to MTN Mobile Money number 0783 123 456. Use your project name as reference.`,
+            airtel: `Send UGX ${this.formatNumber(this.currentGoalData.currentAmount)} to Airtel Money number 0756 123 456. Use your project name as reference.`,
+            bank: `Transfer UGX ${this.formatNumber(this.currentGoalData.currentAmount)} to:\nBank: Centenary Bank\nAccount: 3100045678\nName: Chase x Records\nUse your project name as reference.`,
+            card: `You will be redirected to our secure payment gateway to complete your card payment of UGX ${this.formatNumber(this.currentGoalData.currentAmount)}.`
+        }
+        
+        instructionsText.textContent = methodInstructions[method] || 'Please complete the payment using your selected method.'
+        instructions.style.display = 'block'
+    }
+
+    processPayment() {
+        const transactionId = document.getElementById('transactionId').value.trim()
+        
+        if (!transactionId) {
+            this.showMessage('Please enter a transaction ID/reference', 'error')
+            return
+        }
+
+        // Show processing state
+        const confirmBtn = document.getElementById('confirmPayment')
+        const originalText = confirmBtn.textContent
+        confirmBtn.innerHTML = '<div class="spinner"></div> Processing...'
+        confirmBtn.disabled = true
+
+        // Simulate payment processing
+        setTimeout(() => {
+            if (this.currentGoalData.isAdditional) {
+                this.processAdditionalPayment(transactionId)
+            } else {
+                // Create the goal with the payment
+                this.saveGoal({
+                    ...this.currentGoalData,
+                    transactionId: transactionId,
+                    paymentDate: new Date().toISOString()
+                })
+            }
+            
+            // Show success message
+            this.showPaymentSuccess()
+            
+        }, 2000)
+    }
+
+    showPaymentSuccess() {
+        const modalBody = document.querySelector('.modal-body')
+        modalBody.innerHTML = `
+            <div class="payment-success">
+                <i class="fas fa-check-circle"></i>
+                <h4>Payment Successful!</h4>
+                <p>Your payment of UGX ${this.formatNumber(this.currentGoalData.currentAmount)} has been received${this.currentGoalData.isAdditional ? ' and added to your savings goal' : ' and your savings goal has been created'}.</p>
+                <button class="btn btn-primary" onclick="savingsManager.completePaymentProcess()">Continue</button>
+            </div>
+        `
+    }
+
+    completePaymentProcess() {
+        this.hidePaymentModal()
+        document.getElementById('savingsForm').reset()
+    }
+
+    saveGoal(goalData) {
         const goal = {
             id: Date.now().toString(),
-            projectName: formData.get('projectName'),
-            targetAmount: parseInt(formData.get('targetAmount')),
-            currentAmount: parseInt(formData.get('currentAmount')),
-            targetDate: formData.get('targetDate'),
-            serviceType: formData.get('serviceType'),
-            createdAt: new Date().toISOString(),
-            completed: false
+            ...goalData
         }
 
         this.savingsGoals.push(goal)
         this.saveToLocalStorage()
         this.renderGoals()
         this.updateDashboard()
-        e.target.reset()
-        
-        // Show success message
         this.showMessage('Savings goal created successfully!', 'success')
     }
 
@@ -62,20 +209,67 @@ class SavingsManager {
     }
 
     addSavings(goalId, amount) {
-        const goal = this.savingsGoals.find(g => g.id === goalId)
+        if (amount > 0) {
+            // Show payment modal for additional savings
+            const goal = this.savingsGoals.find(g => g.id === goalId)
+            this.currentGoalData = {
+                projectName: goal.projectName,
+                targetAmount: goal.targetAmount,
+                currentAmount: amount,
+                serviceType: goal.serviceType,
+                goalId: goalId,
+                isAdditional: true
+            }
+            
+            this.showPaymentModal()
+        }
+    }
+
+    processAdditionalPayment(transactionId) {
+        const goal = this.savingsGoals.find(g => g.id === this.currentGoalData.goalId)
         if (goal) {
-            const newAmount = goal.currentAmount + amount
+            const newAmount = goal.currentAmount + this.currentGoalData.currentAmount
             const completed = newAmount >= goal.targetAmount
             
-            this.updateGoal(goalId, {
+            this.updateGoal(this.currentGoalData.goalId, {
                 currentAmount: newAmount,
-                completed: completed
+                completed: completed,
+                lastPaymentDate: new Date().toISOString(),
+                lastPaymentAmount: this.currentGoalData.currentAmount,
+                lastTransactionId: transactionId
             })
 
             if (completed) {
                 this.showMessage(`Congratulations! You've reached your savings goal for "${goal.projectName}"`, 'success')
             }
         }
+    }
+
+    showAddSavingsModal(goalId) {
+        const amount = prompt('Enter amount to add (UGX):')
+        if (amount && !isNaN(amount) && parseInt(amount) > 0) {
+            this.addSavings(goalId, parseInt(amount))
+        } else if (amount) {
+            this.showMessage('Please enter a valid amount greater than 0', 'error')
+        }
+    }
+
+    calculateDaysLeft(targetDate) {
+        const today = new Date()
+        const target = new Date(targetDate)
+        const diffTime = target - today
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    }
+
+    getServiceName(serviceType) {
+        const services = {
+            'production': 'Music Production',
+            'mixing': 'Mixing & Mastering',
+            'vocal': 'Vocal Production',
+            'songwriting': 'Songwriting',
+            'other': 'Other'
+        }
+        return services[serviceType] || serviceType
     }
 
     renderGoals() {
@@ -125,6 +319,18 @@ class SavingsManager {
                         <i class="fas fa-clock"></i>
                         <span>${daysLeft > 0 ? `${daysLeft} days left` : 'Target date passed'}</span>
                     </div>
+                    ${goal.paymentDate ? `
+                    <div class="detail-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>Initial payment: ${new Date(goal.paymentDate).toLocaleDateString()}</span>
+                    </div>
+                    ` : ''}
+                    ${goal.lastPaymentDate ? `
+                    <div class="detail-item">
+                        <i class="fas fa-history"></i>
+                        <span>Last payment: ${new Date(goal.lastPaymentDate).toLocaleDateString()}</span>
+                    </div>
+                    ` : ''}
                 </div>
 
                 <div class="goal-actions">
@@ -143,31 +349,6 @@ class SavingsManager {
                 ` : ''}
             </div>
         `
-    }
-
-    showAddSavingsModal(goalId) {
-        const amount = prompt('Enter amount to add (UGX):')
-        if (amount && !isNaN(amount) && parseInt(amount) > 0) {
-            this.addSavings(goalId, parseInt(amount))
-        }
-    }
-
-    calculateDaysLeft(targetDate) {
-        const today = new Date()
-        const target = new Date(targetDate)
-        const diffTime = target - today
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    }
-
-    getServiceName(serviceType) {
-        const services = {
-            'production': 'Music Production',
-            'mixing': 'Mixing & Mastering',
-            'vocal': 'Vocal Production',
-            'songwriting': 'Songwriting',
-            'other': 'Other'
-        }
-        return services[serviceType] || serviceType
     }
 
     updateDashboard() {
