@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings & Targets - Chase x Records</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html" style="text-decoration: none;">
+                    <h1><i class="fas fa-compact-disc"></i> Chase x Records</h1>
+                </a>
+            </div>
+            <nav class="nav" id="nav">
+                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="services.html" class="nav-link"><i class="fas fa-sliders-h"></i> Services</a>
+                <a href="music.html" class="nav-link"><i class="fas fa-music"></i> Music</a>
+                <a href="artists.html" class="nav-link"><i class="fas fa-user-alt"></i> Artists</a>
+                <a href="savings.html" class="nav-link"><i class="fas fa-piggy-bank"></i> Savings</a>
+                <a href="about.html" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
+                <a href="contact.html" class="nav-link"><i class="fas fa-envelope"></i> Contact</a>
+            </nav>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="hero" style="min-height: 40vh; margin-top: 80px;">
+        <div class="hero-content">
+            <h2 class="hero-title" style="font-size: 3rem;">Savings & Targets</h2>
+            <p class="hero-tagline">Plan and save for your upcoming projects</p>
+        </div>
+        <div class="hero-background"></div>
+    </section>
+
+    <!-- Savings Dashboard -->
+    <section class="services">
+        <div class="container">
+            <div class="savings-dashboard">
+                <div class="savings-stats">
+                    <div class="stat-card">
+                        <h4>Total Saved</h4>
+                        <div class="amount">UGX 0</div>
+                        <p>Across all projects</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Active Goals</h4>
+                        <div class="amount">0</div>
+                        <p>Projects in progress</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Next Target</h4>
+                        <div class="amount">-</div>
+                        <p>Nearest completion date</p>
+                    </div>
+                </div>
+
+                <!-- New Savings Goal Form -->
+                <div class="savings-form-container">
+                    <h3 class="section-title">Create New Savings Goal</h3>
+                    <form id="savingsForm" class="contact-form">
+                        <div class="form-group">
+                            <label for="projectName">Project Name</label>
+                            <input type="text" id="projectName" name="projectName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="targetAmount">Target Amount (UGX)</label>
+                            <input type="number" id="targetAmount" name="targetAmount" required min="1000">
+                        </div>
+                        <div class="form-group">
+                            <label for="currentAmount">Current Savings (UGX)</label>
+                            <input type="number" id="currentAmount" name="currentAmount" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="targetDate">Target Completion Date</label>
+                            <input type="date" id="targetDate" name="targetDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="serviceType">Service Type</label>
+                            <select id="serviceType" name="serviceType">
+                                <option value="production">Music Production</option>
+                                <option value="mixing">Mixing & Mastering</option>
+                                <option value="vocal">Vocal Production</option>
+                                <option value="songwriting">Songwriting</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Savings Goal</button>
+                    </form>
+                </div>
+
+                <!-- Savings Goals List -->
+                <div class="savings-goals">
+                    <h3 class="section-title">Your Savings Goals</h3>
+                    <div id="goalsList" class="goals-container">
+                        <!-- Goals will be dynamically added here -->
+                        <div class="no-goals">
+                            <p>No savings goals yet. Create your first goal above!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Progress Visualization -->
+    <section class="music">
+        <div class="container">
+            <h3 class="section-title">Savings Progress</h3>
+            <div id="progressCharts" class="progress-charts">
+                <!-- Progress charts will be added here -->
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h5><i class="fas fa-compact-disc"></i> Chase x Records</h5>
+                <p>Professional music production and recording studio.</p>
+            </div>
+            <div class="footer-section">
+                <h5>Quick Links</h5>
+                <ul>
+                    <li><a href="services.html"><i class="fas fa-chevron-right"></i> Services</a></li>
+                    <li><a href="music.html"><i class="fas fa-chevron-right"></i> Music</a></li>
+                    <li><a href="artists.html"><i class="fas fa-chevron-right"></i> Artists</a></li>
+                    <li><a href="savings.html"><i class="fas fa-chevron-right"></i> Savings</a></li>
+                    <li><a href="contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h5>Follow</h5>
+                <div class="footer-socials">
+                    <a href="https://instagram.com" target="_blank">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://youtube.com" target="_blank">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="https://spotify.com" target="_blank">
+                        <i class="fab fa-spotify"></i>
+                    </a>
+                    <a href="https://tiktok.com" target="_blank">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Chase x Records. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="scripts/savings.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>
