@@ -128,37 +128,202 @@ class SavingsManager {
     }
 
     processPayment() {
-        const transactionId = document.getElementById('transactionId').value.trim()
-        
-        if (!transactionId) {
-            this.showMessage('Please enter a transaction ID/reference', 'error')
-            return
-        }
-
-        // Show processing state
-        const confirmBtn = document.getElementById('confirmPayment')
-        const originalText = confirmBtn.textContent
-        confirmBtn.innerHTML = '<div class="spinner"></div> Processing...'
-        confirmBtn.disabled = true
-
-        // Simulate payment processing
-        setTimeout(() => {
-            if (this.currentGoalData.isAdditional) {
-                this.processAdditionalPayment(transactionId)
-            } else {
-                // Create the goal with the payment
-                this.saveGoal({
-                    ...this.currentGoalData,
-                    transactionId: transactionId,
-                    paymentDate: new Date().toISOString()
-                })
-            }
-            
-            // Show success message
-            this.showPaymentSuccess()
-            
-        }, 2000)
+    const transactionId = document.getElementById('transactionId').value.trim();
+    
+    if (!transactionId) {
+        this.showMessage('Please enter a transaction ID/reference', 'error');
+        return;
     }
+
+    // Show processing state
+    const confirmBtn = document.getElementById('confirmPayment');
+    confirmBtn.innerHTML = '<div class="spinner"></div> Processing...';
+    confirmBtn.disabled = true;
+
+    // Store payment in waiting state
+    const waitingPayment = {
+        id: `payment_${Date.now()}`,
+        projectName: this.currentGoalData.projectName,
+        amount: this.currentGoalData.currentAmount,
+        transactionId: transactionId,
+        timestamp: new Date().toISOString(),
+        status: 'waiting_verification'
+    };
+
+    // Save to "server" (localStorage for demo)
+    this.saveWaitingPayment(waitingPayment);
+
+    // Start verification polling
+    this.startPaymentVerification(waitingPayment.id);
+}
+
+saveWaitingPayment(payment) {
+    const waitingPayments = JSON.parse(localStorage.getItem('waitingUserPayments') || '[]');
+    waitingPayments.push(payment);
+    localStorage.setItem('waitingUserPayments', JSON.stringify(waitingPayments));
+}
+
+startPaymentVerification(paymentId) {
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes (5-second intervals)
+    
+    const checkInterval = setInterval(() => {
+        attempts++;
+        const confirmation = this.checkPaymentConfirmation(paymentId);
+        
+        if (confirmation) {
+            clearInterval(checkInterval);
+            this.handleVerificationResult(confirmation);
+            
+            // Show real-time status update
+            this.updatePaymentStatus('verified', confirmation);
+        } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            this.handleVerificationTimeout();
+            this.updatePaymentStatus('timeout');
+        } else {
+            // Show waiting status
+            this.updatePaymentStatus('waiting', { attempts, maxAttempts });
+        }
+    }, 5000); // Check every 5 seconds
+}
+
+updatePaymentStatus(status, data = {}) {
+    const statusElement = document.getElementById('paymentStatus') || this.createStatusElement();
+    
+    const statusMessages = {
+        waiting: `⏳ Waiting for studio verification... (${data.attempts}/${data.maxAttempts})`,
+        verified: '✅ Payment verified by studio!',
+        mismatch: '⚠️ Payment received but ID mismatch',
+        timeout: '❌ Verification timeout - contact support'
+    };
+    
+    statusElement.textContent = statusMessages[status] || statusMessages.waiting;
+    statusElement.className = `payment-status status-${status}`;
+}
+
+createStatusElement() {
+    const statusElement = document.createElement('div');
+    statusElement.id = 'paymentStatus';
+    statusElement.style.cssText = `
+        text-align: center;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: var(--radius);
+        font-weight: 600;
+    `;
+    
+    const modalBody = document.querySelector('.modal-body');
+    const instructions = document.getElementById('paymentInstructions');
+    if (instructions) {
+        instructions.parentNode.insertBefore(statusElement, instructions.nextSibling);
+    }
+    
+    return statusElement;
+}
+
+checkPaymentConfirmation(paymentId) {
+    const confirmations = JSON.parse(localStorage.getItem('paymentConfirmations') || '[]');
+    return confirmations.find(conf => conf.userPaymentId === paymentId);
+}
+
+handleVerificationResult(confirmation) {
+    if (confirmation.matched) {
+        // Perfect match - complete payment
+        this.completePaymentProcess(confirmation);
+        this.showMessage('Payment verified successfully!', 'success');
+    } else {
+        // Amount received but transaction ID mismatch
+        this.handleTransactionIdMismatch(confirmation);
+    }
+}
+
+handleTransactionIdMismatch(confirmation) {
+    const modalBody = document.querySelector('.modal-body');
+    modalBody.innerHTML = `
+        <div class="payment-mismatch">
+            <i class="fas fa-exclamation-triangle" style="color: #ffc107; font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h4>Payment Received - ID Mismatch</h4>
+            <p>We received UGX ${this.formatNumber(confirmation.amount)} from ${confirmation.sender}, 
+            but the transaction ID doesn't match.</p>
+            <div class="mismatch-details">
+                <p><strong>Your entered ID:</strong> ${confirmation.userTransactionId}</p>
+                <p><strong>Actual ID from SMS:</strong> ${confirmation.studioTransactionId}</p>
+            </div>
+            <div class="mismatch-actions">
+                <button onclick="savingsManager.correctTransactionId('${confirmation.userPaymentId}', '${confirmation.studioTransactionId}')" 
+                        class="btn btn-primary">
+                    Use Correct ID
+                </button>
+                <button onclick="savingsManager.contactSupport('${confirmation.userPaymentId}')" 
+                        class="btn btn-secondary">
+                    Contact Support
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+correctTransactionId(paymentId, correctId) {
+    // Update the transaction ID and complete payment
+    const confirmations = JSON.parse(localStorage.getItem('paymentConfirmations') || '[]');
+    const confirmation = confirmations.find(conf => conf.userPaymentId === paymentId);
+    
+    if (confirmation) {
+        confirmation.userTransactionId = correctId;
+        confirmation.matched = true;
+        localStorage.setItem('paymentConfirmations', JSON.stringify(confirmations));
+        
+        this.completePaymentProcess(confirmation);
+        this.showMessage('Payment completed with corrected ID!', 'success');
+    }
+}
+
+contactSupport(paymentId) {
+    alert('Please contact support at +256 700 123 456 with your payment details.');
+    this.hidePaymentModal();
+}
+
+handleVerificationTimeout() {
+    const modalBody = document.querySelector('.modal-body');
+    modalBody.innerHTML = `
+        <div class="payment-timeout">
+            <i class="fas fa-clock" style="color: #dc3545; font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h4>Payment Verification Timeout</h4>
+            <p>We haven't received confirmation of your payment yet.</p>
+            <div class="timeout-actions">
+                <button onclick="savingsManager.retryVerification()" class="btn btn-primary">
+                    Retry Verification
+                </button>
+                <button onclick="savingsManager.contactSupport('timeout')" class="btn btn-secondary">
+                    Contact Support
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+retryVerification() {
+    // Reset and restart verification
+    this.hidePaymentModal();
+    this.showPaymentModal();
+    this.showMessage('Please try the payment verification again', 'info');
+}
+
+completePaymentProcess(confirmation) {
+    if (this.currentGoalData.isAdditional) {
+        this.processAdditionalPayment(confirmation.studioTransactionId);
+    } else {
+        this.saveGoal({
+            ...this.currentGoalData,
+            transactionId: confirmation.studioTransactionId,
+            paymentDate: new Date().toISOString(),
+            verified: true
+        });
+    }
+    
+    this.showPaymentSuccess();
+}
 
     showPaymentSuccess() {
         const modalBody = document.querySelector('.modal-body')

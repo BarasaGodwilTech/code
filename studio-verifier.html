@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Payment Verifier - Chase Records</title>
+    <meta name="theme-color" content="#00d4ff">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Studio Verifier">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    
+    <style>
+        /* Studio App Specific Styles */
+        .studio-app {
+            max-width: 100%;
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        .app-header {
+            background: var(--surface);
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .app-header h1 {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .phone-numbers {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .phone-number {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--primary);
+        }
+
+        .app-content {
+            padding: 2rem 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .permission-section {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .permission-btn {
+            background: var(--primary);
+            color: var(--background);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 1rem 0;
+            transition: var(--transition);
+        }
+
+        .permission-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .permission-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .payment-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .payment-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .payment-card.pending {
+            border-left: 4px solid var(--primary);
+        }
+
+        .payment-card.verified {
+            border-left: 4px solid #10b981;
+        }
+
+        .payment-card.mismatch {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .payment-header {
+            display: flex;
+            justify-content: between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .payment-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .payment-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending { background: rgba(0, 212, 255, 0.2); color: var(--primary); }
+        .status-verified { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-mismatch { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+
+        .payment-details {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .simulation-panel {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--radius);
+            margin-top: 2rem;
+            border: 2px dashed var(--border);
+        }
+
+        .sim-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .sim-input {
+            flex: 1;
+            min-width: 150px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: var(--radius);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        /* SMS Preview */
+        .sms-preview {
+            background: #e8f5e8;
+            color: #333;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: Arial, sans-serif;
+            border-left: 4px solid #4caf50;
+        }
+
+        @media (max-width: 768px) {
+            .phone-numbers {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .sim-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="studio-app">
+        <div class="app-header">
+            <h1><i class="fas fa-mobile-alt"></i> Studio Payment Verifier</h1>
+            <p>Monitor incoming payments and verify transactions</p>
+            <div class="phone-numbers">
+                <div class="phone-number">
+                    <i class="fas fa-phone"></i> MTN: +256 783 123 456
+                </div>
+                <div class="phone-number">
+                    <i class="fas fa-phone"></i> Airtel: +256 756 123 456
+                </div>
+            </div>
+        </div>
+
+        <div class="app-content">
+            <!-- Permissions Section -->
+            <div class="permission-section" id="permissionSection">
+                <h3><i class="fas fa-shield-alt"></i> App Permissions</h3>
+                <p>This app needs permissions to monitor SMS for payment verification</p>
+                <button class="permission-btn" id="installBtn">
+                    <i class="fas fa-download"></i> Install App
+                </button>
+                <button class="permission-btn" id="smsPermissionBtn" disabled>
+                    <i class="fas fa-comment-sms"></i> Grant SMS Permission
+                </button>
+                <button class="permission-btn" id="notificationPermissionBtn">
+                    <i class="fas fa-bell"></i> Enable Notifications
+                </button>
+                <div id="permissionStatus" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Payment Monitoring -->
+            <div id="monitoringSection" style="display: none;">
+                <h3><i class="fas fa-wave-square"></i> Active Monitoring</h3>
+                <p style="color: var(--text-secondary);">Listening for MTN & Airtel payment notifications...</p>
+                
+                <div class="payment-list" id="paymentList">
+                    <!-- Payments will be dynamically added here -->
+                </div>
+
+                <!-- Simulation Panel (for testing) -->
+                <div class="simulation-panel">
+                    <h4><i class="fas fa-vial"></i> Test Payment Simulation</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Simulate incoming payment messages for testing
+                    </p>
+                    <div class="sim-controls">
+                        <input type="number" class="sim-input" id="simAmount" placeholder="Amount" value="50000">
+                        <input type="text" class="sim-input" id="simSender" placeholder="Sender Name" value="JOHN DOE">
+                        <select class="sim-input" id="simProvider">
+                            <option value="mtn">MTN Mobile Money</option>
+                            <option value="airtel">Airtel Money</option>
+                        </select>
+                        <button class="btn btn-primary" id="simulatePaymentBtn">
+                            <i class="fas fa-paper-plane"></i> Simulate Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/studio-verifier.js"></script>
+</body>
+</html>
