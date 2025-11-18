@@ -430,3 +430,304 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize music filters
     new MusicFilters();
 });
+// === MUSIC SEARCH FUNCTIONALITY ===
+class MusicSearch {
+    constructor() {
+        this.searchInput = document.getElementById('musicSearch');
+        this.searchClear = document.getElementById('searchClear');
+        this.searchFilterToggle = document.getElementById('searchFilterToggle');
+        this.searchFilters = document.getElementById('searchFilters');
+        this.resultsCount = document.getElementById('resultsCount');
+        this.trackCards = document.querySelectorAll('.track-card');
+        this.musicGrid = document.getElementById('musicGrid');
+        this.sortBy = document.getElementById('sortBy');
+        this.genreFilter = document.getElementById('genreFilter');
+        this.durationFilter = document.getElementById('durationFilter');
+        
+        this.allTracks = Array.from(this.trackCards);
+        this.currentSearchTerm = '';
+        
+        if (this.searchInput) {
+            this.init();
+        }
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.updateResultsCount(this.allTracks.length);
+    }
+    
+    setupEventListeners() {
+        // Search input events
+        this.searchInput.addEventListener('input', (e) => {
+            this.handleSearch(e.target.value);
+        });
+        
+        this.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.handleSearch(e.target.value);
+            }
+        });
+        
+        // Clear search
+        this.searchClear.addEventListener('click', () => {
+            this.clearSearch();
+        });
+        
+        // Filter toggle
+        this.searchFilterToggle.addEventListener('click', () => {
+            this.toggleFilters();
+        });
+        
+        // Filter changes
+        this.sortBy.addEventListener('change', () => {
+            this.applyFilters();
+        });
+        
+        this.genreFilter.addEventListener('change', () => {
+            this.applyFilters();
+        });
+        
+        this.durationFilter.addEventListener('change', () => {
+            this.applyFilters();
+        });
+        
+        // Close filters when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-filters') && !e.target.closest('.search-filter-toggle')) {
+                this.searchFilters.classList.remove('show');
+                this.searchFilterToggle.classList.remove('active');
+            }
+        });
+    }
+    
+    handleSearch(searchTerm) {
+        this.currentSearchTerm = searchTerm.toLowerCase().trim();
+        
+        // Show/hide clear button
+        if (this.currentSearchTerm) {
+            this.searchClear.classList.add('show');
+        } else {
+            this.searchClear.classList.remove('show');
+        }
+        
+        this.applyFilters();
+    }
+    
+    applyFilters() {
+        let filteredTracks = [...this.allTracks];
+        
+        // Apply search filter
+        if (this.currentSearchTerm) {
+            filteredTracks = filteredTracks.filter(card => {
+                const title = card.querySelector('.track-title').textContent.toLowerCase();
+                const artist = card.querySelector('.track-artist').textContent.toLowerCase();
+                const genre = card.querySelector('.track-genre').textContent.toLowerCase();
+                
+                return title.includes(this.currentSearchTerm) || 
+                       artist.includes(this.currentSearchTerm) || 
+                       genre.includes(this.currentSearchTerm);
+            });
+            
+            // Highlight search terms
+            this.highlightSearchTerms(filteredTracks);
+        }
+        
+        // Apply genre filter
+        const genreValue = this.genreFilter.value;
+        if (genreValue !== 'all') {
+            filteredTracks = filteredTracks.filter(card => {
+                const genre = card.querySelector('.track-genre').textContent.toLowerCase();
+                return genre.includes(genreValue);
+            });
+        }
+        
+        // Apply duration filter
+        const durationValue = this.durationFilter.value;
+        if (durationValue !== 'all') {
+            filteredTracks = filteredTracks.filter(card => {
+                const durationText = card.querySelector('.track-duration').textContent;
+                const minutes = parseInt(durationText.split(':')[0]);
+                
+                switch (durationValue) {
+                    case 'short': return minutes < 3;
+                    case 'medium': return minutes >= 3 && minutes <= 5;
+                    case 'long': return minutes > 5;
+                    default: return true;
+                }
+            });
+        }
+        
+        // Apply sorting
+        this.sortTracks(filteredTracks);
+        
+        // Update display
+        this.displayFilteredTracks(filteredTracks);
+        this.updateResultsCount(filteredTracks.length);
+    }
+    
+    sortTracks(tracks) {
+        const sortValue = this.sortBy.value;
+        
+        tracks.sort((a, b) => {
+            switch (sortValue) {
+                case 'newest':
+                    return this.getReleaseDate(b) - this.getReleaseDate(a);
+                case 'oldest':
+                    return this.getReleaseDate(a) - this.getReleaseDate(b);
+                case 'popular':
+                    return this.getPopularity(b) - this.getPopularity(a);
+                case 'duration':
+                    return this.getDuration(b) - this.getDuration(a);
+                default: // relevance
+                    return 0;
+            }
+        });
+    }
+    
+    getReleaseDate(card) {
+        const dateText = card.querySelector('.release-date').textContent;
+        const match = dateText.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})/);
+        if (match) {
+            const month = match[1];
+            const year = match[2];
+            return new Date(`${month} 1, ${year}`).getTime();
+        }
+        return 0;
+    }
+    
+    getPopularity(card) {
+        const stats = card.querySelector('.track-stats');
+        if (stats) {
+            const playText = stats.querySelector('.stat:nth-child(1) span').textContent;
+            return parseInt(playText.replace('K', '000').replace('.', ''));
+        }
+        return 0;
+    }
+    
+    getDuration(card) {
+        const durationText = card.querySelector('.track-duration').textContent;
+        const [minutes, seconds] = durationText.split(':').map(Number);
+        return minutes * 60 + seconds;
+    }
+    
+    displayFilteredTracks(tracks) {
+        // Remove existing no results message
+        const existingMessage = this.musicGrid.querySelector('.no-search-results');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Hide all tracks first
+        this.allTracks.forEach(card => {
+            card.style.display = 'none';
+            card.classList.remove('filter-visible');
+            card.classList.add('filter-hidden');
+        });
+        
+        // Show filtered tracks with animation
+        if (tracks.length === 0) {
+            this.showNoResultsMessage();
+        } else {
+            tracks.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.display = 'block';
+                    card.classList.remove('filter-hidden');
+                    card.classList.add('filter-visible');
+                }, index * 50);
+            });
+        }
+    }
+    
+    highlightSearchTerms(tracks) {
+        // Remove existing highlights
+        this.allTracks.forEach(card => {
+            const title = card.querySelector('.track-title');
+            const artist = card.querySelector('.track-artist');
+            const genre = card.querySelector('.track-genre');
+            
+            this.removeHighlights(title);
+            this.removeHighlights(artist);
+            this.removeHighlights(genre);
+        });
+        
+        // Apply highlights to filtered tracks
+        if (this.currentSearchTerm) {
+            tracks.forEach(card => {
+                const title = card.querySelector('.track-title');
+                const artist = card.querySelector('.track-artist');
+                const genre = card.querySelector('.track-genre');
+                
+                this.applyHighlight(title, this.currentSearchTerm);
+                this.applyHighlight(artist, this.currentSearchTerm);
+                this.applyHighlight(genre, this.currentSearchTerm);
+            });
+        }
+    }
+    
+    applyHighlight(element, searchTerm) {
+        const text = element.textContent;
+        const regex = new RegExp(`(${this.escapeRegex(searchTerm)})`, 'gi');
+        const highlighted = text.replace(regex, '<span class="search-highlight">$1</span>');
+        element.innerHTML = highlighted;
+    }
+    
+    removeHighlights(element) {
+        element.innerHTML = element.textContent;
+    }
+    
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    showNoResultsMessage() {
+        const message = document.createElement('div');
+        message.className = 'no-search-results';
+        message.innerHTML = `
+            <div class="no-search-results-content">
+                <i class="fas fa-search"></i>
+                <h4>No tracks found</h4>
+                <p>Try adjusting your search or filters</p>
+            </div>
+        `;
+        this.musicGrid.appendChild(message);
+    }
+    
+    updateResultsCount(count) {
+        this.resultsCount.textContent = `${count} track${count !== 1 ? 's' : ''}`;
+    }
+    
+    clearSearch() {
+        this.searchInput.value = '';
+        this.currentSearchTerm = '';
+        this.searchClear.classList.remove('show');
+        this.removeHighlightsFromAll();
+        this.applyFilters();
+    }
+    
+    removeHighlightsFromAll() {
+        this.allTracks.forEach(card => {
+            const title = card.querySelector('.track-title');
+            const artist = card.querySelector('.track-artist');
+            const genre = card.querySelector('.track-genre');
+            
+            this.removeHighlights(title);
+            this.removeHighlights(artist);
+            this.removeHighlights(genre);
+        });
+    }
+    
+    toggleFilters() {
+        this.searchFilters.classList.toggle('show');
+        this.searchFilterToggle.classList.toggle('active');
+    }
+}
+
+// Initialize music search when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize music filters
+    new MusicFilters();
+    
+    // Initialize music search
+    new MusicSearch();
+});

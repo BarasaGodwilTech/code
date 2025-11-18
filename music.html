@@ -179,6 +179,61 @@
                     <source src="/placeholder.mp3" type="audio/mpeg">
                 </audio>
             </div>
+             
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="musicSearch" class="search-input" placeholder="Search tracks, artists, genres...">
+                        <button class="search-clear" id="searchClear">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="search-results-info" id="searchResultsInfo">
+                        <span id="resultsCount">6 tracks</span>
+                        <button class="search-filter-toggle" id="searchFilterToggle">
+                            <i class="fas fa-sliders-h"></i>
+                            Filters
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Search Filters Dropdown -->
+                <div class="search-filters" id="searchFilters">
+                    <div class="filter-group">
+                        <label>Sort By</label>
+                        <select id="sortBy" class="filter-select">
+                            <option value="relevance">Relevance</option>
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="popular">Most Popular</option>
+                            <option value="duration">Duration</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Genre</label>
+                        <select id="genreFilter" class="filter-select">
+                            <option value="all">All Genres</option>
+                            <option value="afro-pop">Afro-Pop</option>
+                            <option value="electronic">Electronic</option>
+                            <option value="dancehall">Dancehall</option>
+                            <option value="r&b">R&B</option>
+                            <option value="afrobeat">Afrobeat</option>
+                            <option value="afro-house">Afro-House</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Duration</label>
+                        <select id="durationFilter" class="filter-select">
+                            <option value="all">Any Duration</option>
+                            <option value="short">Short (0-3 min)</option>
+                            <option value="medium">Medium (3-5 min)</option>
+                            <option value="long">Long (5+ min)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <!-- Music Grid -->
              <!-- Enhanced Music Grid -->
