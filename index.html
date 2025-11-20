@@ -38,21 +38,159 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="hero" id="hero">
-        <div class="hero-content">
-            <h2 class="hero-title">CHASE x RECORDS</h2>
-            <p class="hero-tagline">Where Sound Meets Vision</p><iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/artist/1gxLasEE8iDV3Coz8NosqX?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-            <div class="hero-cta">
-                <a href="contact.html" class="btn btn-primary">Book a Session</a>
-                <a href="music.html" class="btn btn-secondary">Listen Now</a>  
+    <section class="hero" id="hero" aria-labelledby="heroTitle" style="position:relative; overflow:hidden;">
+        <style>
+            /* Scoped hero styles - responsive layout + responsive embeds */
+            .hero-inner {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 3rem 1.25rem;
+                display: grid;
+                grid-template-columns: 1fr 420px;
+                gap: 2rem;
+                align-items: center;
+                position: relative;
+                z-index: 2;
+            }
+
+            .hero-content {
+                color: #fff;
+            }
+
+            .hero-title {
+                margin: 0 0 .5rem 0;
+                font-size: clamp(1.6rem, 4vw, 3rem);
+                letter-spacing: 1px;
+                line-height: 1.05;
+            }
+
+            .hero-tagline {
+                margin: 0 0 1.25rem 0;
+                color: rgba(255, 255, 255, 0.76);
+                font-size: clamp(1rem, 2.2vw, 1.25rem);
+            }
+
+            .hero-cta {
+                display: flex;
+                gap: .75rem;
+                flex-wrap: wrap;
+                margin-top: 1rem;
+            }
+
+            /* Embed card area (right column) */
+            .hero-embeds {
+                display: grid;
+                grid-auto-rows: 1fr;
+                gap: 1rem;
+            }
+
+            .embed-card {
+                background: rgba(255,255,255,0.04);
+                border-radius: 12px;
+                padding: .6rem;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+                display: flex;
+                flex-direction: column;
+                gap: .5rem;
+                min-height: 0;
+            }
+
+            .embed-title {
+                color: rgba(255,255,255,0.9);
+                font-size: .95rem;
+                margin: 0 .5rem;
+            }
+
+            /* Responsive, modern aspect-ratio + fallback */
+            .embed-wrapper {
+                position: relative;
+                width: 100%;
+                aspect-ratio: 16/9;
+                height: auto;
+                border-radius: 10px;
+                overflow: hidden;
+                background:#00000000;
+            }
+            .embed-wrapper::before { content:""; display:block; padding-top:56.25%; } /* fallback for old browsers */
+            .embed-wrapper iframe {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+                display: block;
+            }
+
+            /* Background image + overlay */
+            .hero::before{
+                content:"";
+                position:absolute;
+                inset:0;
+                z-index:1;
+                background-image: linear-gradient(180deg, rgba(6,6,10,0.45) 0%, rgba(6,6,10,0.6) 100%), url('chase-vid.jpg');
+                background-size: cover;
+                background-position: center;
+                filter: saturate(.95) contrast(.98);
+            }
+
+            @media (max-width: 900px){
+                .hero-inner {
+                    grid-template-columns: 1fr;
+                    padding: 2rem 1rem;
+                }
+                .hero-embeds {
+                    grid-template-columns: 1fr 1fr;
+                }
+            }
+
+            @media (max-width: 560px){
+                .hero-embeds {
+                    grid-template-columns: 1fr;
+                }
+                .hero-cta { gap: .5rem; }
+            }
+        </style>
+
+        <div class="hero-inner">
+            <div class="hero-content">
+                <h2 id="heroTitle" class="hero-title">CHASE x RECORDS</h2>
+                <p class="hero-tagline">Where Sound Meets Vision — professional production, mixing & membership plans.</p>
+
+                <div class="hero-cta">
+                    <a class="btn btn-primary" href="contact.html">Book a Session</a>
+                    <a class="btn btn-secondary" href="music.html">Listen Now</a>
+                </div>
+            </div>
+
+            <div class="hero-embeds" aria-hidden="false">
+                <div class="embed-card" role="group" aria-labelledby="artistEmbedTitle">
+                    <h3 id="artistEmbedTitle" class="embed-title">Artist Spotlight</h3>
+                    <div class="embed-wrapper" aria-hidden="false">
+                        <iframe
+                            title="Chase x Records - Artist (Spotify)"
+                            src="https://open.spotify.com/embed/artist/1gxLasEE8iDV3Coz8NosqX?utm_source=generator"
+                            loading="lazy"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        ></iframe>
+                    </div>
+                </div>
+
+                <div class="embed-card" role="group" aria-labelledby="albumEmbedTitle">
+                    <h3 id="albumEmbedTitle" class="embed-title">Latest Release</h3>
+                    <div class="embed-wrapper" aria-hidden="false">
+                        <iframe
+                            title="Chase x Records - Album (Spotify)"
+                            src="https://open.spotify.com/embed/album/39fFMXy2GNHUhASF8qv9sf?utm_source=generator"
+                            loading="lazy"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        ></iframe>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="hero-background" style="position:absolute; inset:0; z-index:-1; overflow:hidden;">
-            <img src="chase vid.jpg" alt="background image" style="width:100%; height:100%; object-fit:cover; display:block;" loading="lazy">
-        </div></div>
     </section>
-    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/album/39fFMXy2GNHUhASF8qv9sf?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-    
 
     <!-- Services Preview -->
     <section class="services" id="services">
@@ -652,7 +790,7 @@
                 </div>
                 <h5 style="margin-top: 1.5rem;">Follow Us</h5>
                 <div class="footer-socials">
-                    <a href="https://instagram.com" target="_blank">
+                    <a href="https://www.instagram.com/chase_xc_/" target="_blank">
                         <i class="fab fa-instagram"></i>
                     </a>
                     <a href="https://www.youtube.com/@chasex1113" target="_blank">
@@ -671,7 +809,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 Chase x Records. All rights reserved.</p>
+            <p>&copy; 2025 Chase x Records. All rights reserved | powered by barasagodwiltechnologies.</p>
         </div>
     </footer>
 
